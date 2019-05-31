@@ -1,12 +1,12 @@
 const users = []
 
-const addUser = ({ id, username, room }) => {
+const addUser = ({ id, name, room }) => {
     // 清洗数据
-    username = username.trim().toLowerCase()
+    name = name.trim().toLowerCase()
     room = room.trim().toLowerCase()
 
     // 验证数据
-    if (!username || !room) {
+    if (!name || !room) {
         return {
             error: '无效的用户名或房间'
         }
@@ -14,7 +14,7 @@ const addUser = ({ id, username, room }) => {
 
     // 检查已存在的用户
     const existingUser = users.find((user) => {
-        return user.room === room && user.username === username
+        return user.room === room && user.name === name
     })
 
     // 验证用户名
@@ -25,7 +25,7 @@ const addUser = ({ id, username, room }) => {
     }
 
     // 储存用户
-    const user = { id, username, room }
+    const user = { id, name, room }
     users.push(user)
     return { user }
 }

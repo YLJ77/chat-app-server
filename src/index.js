@@ -5,6 +5,7 @@ const socketio = require('socket.io')
 const cors = require('cors')
 const Filter = require('bad-words')
 const { generalMsg } = require('./utils/message')
+const { addUser, removeUser, getUser, getUsersInRoom } = require('./utils/users')
 
 const app = express()
 const server = http.createServer(app)
@@ -19,10 +20,16 @@ app.use(express.static(publicDirectoryPath))
 io.on('connection', (socket) => {
     console.log('New WebSocket connection')
 
-    socket.on('join', ({ name, room }) => {
-        socket.join(room)
+    socket.on('join', ({ name, room }, callback) => {
+        const { error, user } = addUser({ id: socket.id, name, room })
+
+        if (error) {
+            return callback(error)
+        }
+        socket.join(user.room)
         socket.emit('message', generalMsg('welcome'));  // 仅自己可见
-        socket.broadcast.to(room).emit('message', generalMsg(`${name} 加入聊天室`))  // 除了自己其他人都可见
+        socket.broadcast.to(user.room).emit('message', generalMsg(`${user.name} 加入聊天室`))  // 除了自己其他人都可见
+        callback();
 
     })
     socket.on('sendMessage', (msg, callback) => {
@@ -38,7 +45,10 @@ io.on('connection', (socket) => {
         callback('位置已分享');
     })
     socket.on('disconnect', () => {
-        io.emit('message', generalMsg('一个用户退出了'));
+        let user = removeUser(socket.id)
+        if (user) {
+            io.to(user.room).emit('message', generalMsg(`${ user.name } 已离开`));
+        }
     })
 })
 
