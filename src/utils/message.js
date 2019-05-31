@@ -1,8 +1,9 @@
-function generalMsg(msg, isLoc = false) {
+function generalMsg({ msg, isLoc = false, name }) {
     return {
         msg,
         time: new Date(),
-        isLoc
+        isLoc,
+        name
     }
 }
 
