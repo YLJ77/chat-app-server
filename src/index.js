@@ -3,6 +3,7 @@ const http = require('http')
 const express = require('express')
 const socketio = require('socket.io')
 const cors = require('cors')
+const Filter = require('bad-words')
 
 const app = express()
 const server = http.createServer(app)
@@ -19,9 +20,14 @@ io.on('connection', (socket) => {
     socket.emit('message', 'welcome')
     socket.broadcast.emit('message', '一个新的用户加入')
 
-    socket.on('sendMessage', (msg) => {
+    socket.on('sendMessage', (msg, callback) => {
         // socket.emit('message', count)
+        const filter = new Filter()
+        if (filter.isProfane(msg)) {
+            return callback('不允许出现粗俗语言');
+        }
         io.emit('message', msg)
+        callback('信息发送成功');
     })
     socket.on('sendLocation', (pos) => {
         io.emit('message', `https://google.com/maps?q=${ pos.latitude },${ pos.longitude }`)
