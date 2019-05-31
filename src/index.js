@@ -30,6 +30,10 @@ io.on('connection', (socket) => {
         socket.join(user.room)
         socket.emit('message', generalMsg({ msg: 'welcome', name: adName }));  // 仅自己可见
         socket.broadcast.to(user.room).emit('message', generalMsg({ msg: `${user.name} 加入聊天室`, name: adName }))  // 除了自己其他人都可见
+        io.to(user.room).emit('roomData', {
+            room: user.room,
+            users: getUsersInRoom(user.room)
+        })
         callback();
 
     })
@@ -51,6 +55,10 @@ io.on('connection', (socket) => {
         let user = removeUser(socket.id)
         if (user) {
             io.to(user.room).emit('message', generalMsg({ msg: `${ user.name } 已离开`, name: 'admin' }));
+            io.to(user.room).emit('roomData', {
+                room: user.room,
+                users: getUsersInRoom(user.room)
+            })
         }
     })
 })
