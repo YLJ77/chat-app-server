@@ -14,15 +14,20 @@ const publicDirectoryPath = path.join(__dirname, '../public')
 app.use(cors())
 app.use(express.static(publicDirectoryPath))
 
-let count = 0;
 io.on('connection', (socket) => {
     console.log('New WebSocket connection')
-    socket.emit('countUpdated', count)
+    socket.emit('message', 'welcome')
+    socket.broadcast.emit('message', '一个新的用户加入')
 
-    socket.on('increment', () => {
-        count++;
-        // socket.emit('countUpdated', count)
-        io.emit('countUpdated', count)
+    socket.on('sendMessage', (msg) => {
+        // socket.emit('message', count)
+        io.emit('message', msg)
+    })
+    socket.on('sendLocation', (pos) => {
+        io.emit('message', `https://google.com/maps?q=${ pos.latitude },${ pos.longitude }`)
+    })
+    socket.on('disconnect', () => {
+        io.emit('message', '一个用户退出了');
     })
 })
 
