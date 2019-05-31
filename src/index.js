@@ -18,13 +18,13 @@ app.use(express.static(publicDirectoryPath))
 
 io.on('connection', (socket) => {
     console.log('New WebSocket connection')
-    socket.emit('message', {    // 仅自己可见
-        msg: 'welcome',
-        time: new Date(),
-        isLoc: false
-    });
-    socket.broadcast.emit('message', generalMsg('一个新用户加入'))  // 除了自己其他人都可见
 
+    socket.on('join', ({ name, room }) => {
+        socket.join(room)
+        socket.emit('message', generalMsg('welcome'));  // 仅自己可见
+        socket.broadcast.to(room).emit('message', generalMsg(`${name} 加入聊天室`))  // 除了自己其他人都可见
+
+    })
     socket.on('sendMessage', (msg, callback) => {
         const filter = new Filter()
         if (filter.isProfane(msg)) {
