@@ -5,7 +5,8 @@ const socketio = require('socket.io')
 const cors = require('cors')
 const Filter = require('bad-words')
 const { generalMsg } = require('./utils/message')
-const { addUser, removeUser, getUser, getUsersInRoom } = require('./utils/users')
+const { addUser, removeUser, getUser, getUsersInRoom, users } = require('./utils/users')
+const joinRouter = require('./routers/join')
 
 const app = express()
 const server = http.createServer(app)
@@ -15,11 +16,15 @@ const port = process.env.PORT || 3000
 const publicDirectoryPath = path.join(__dirname, '../public')
 
 app.use(cors())
+app.use(joinRouter)
+app.use(express.json())
 app.use(express.static(publicDirectoryPath))
+
 
 io.on('connection', (socket) => {
     console.log('New WebSocket connection')
 
+    io.emit('roomMayChange', users)
     socket.on('join', ({ name, room }, callback) => {
         const { error, user } = addUser({ id: socket.id, name, room })
         const adName = 'admin'
@@ -34,6 +39,7 @@ io.on('connection', (socket) => {
             room: user.room,
             users: getUsersInRoom(user.room)
         })
+        io.emit('roomMayChange', users)
         callback();
 
     })
@@ -59,6 +65,7 @@ io.on('connection', (socket) => {
                 room: user.room,
                 users: getUsersInRoom(user.room)
             })
+            io.emit('roomMayChange', users)
         }
     })
 })
